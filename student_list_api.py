@@ -18,6 +18,7 @@ origins = [
     "http://localhost:5174",  # your current port
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
+    "http://127.0.0.1:5176",
 ]
 
 app.add_middleware(
@@ -29,10 +30,15 @@ app.add_middleware(
 )
 
 
+
+@app.get("/")
+def homepage():
+    return "This is the student landing page for this api."
+    
 @app.get("/students")
 def get_students():
     return [
-        {"name": "Adesoji Ajijolaoluwa", "age": 25, "course": "Data Science"},
+        {"name": "Adesoji Ajijolaoluwa", "age": 25, "course": "AI Development"},
         {"name": "John Doe", "age": 22, "course": "Computer Science"},
         {"name": "Jane Smith", "age": 23, "course": "Information Technology"},
         {"name": "Emily Johnson", "age": 21, "course": "Software Engineering"},
@@ -42,8 +48,9 @@ def get_students():
         {"name": "Laura Garcia", "age": 21, "course": "Database Management"},
         {"name": "James Martinez", "age": 25, "course": "Cloud Computing"},
         {"name": "Linda Rodriguez", "age": 24, "course": "Artificial Intelligence"},
+        {"name": "Carlos Fuego", "age": 27, "course": "Business Intelligence"},
         
     ]
 
-if __name__ == "__main__":
-    uvicorn.run(app, host=os.getenv("host"), port=int(os.getenv("port")))
+# if __name__ == "__main__":
+#     uvicorn.run(app, host=os.getenv("host"), port=int(os.getenv("port")))
