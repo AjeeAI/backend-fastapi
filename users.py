@@ -1,6 +1,6 @@
 import bcrypt
 from database import db
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 import jwt
@@ -9,16 +9,22 @@ import os
 from dotenv import load_dotenv
 import uvicorn
 
+from middleware import create_token, verify_token
+
 load_dotenv()
 
 app = FastAPI(title="Simple App", version="1.0.0")
 
+token_time = int(os.getenv("token_time"))
 class Simple(BaseModel):
     name: str = Field(... , example="Sam Larry")
     email: str = Field(..., example= "sam@email.com")
     password: str = Field(..., example="sam123")
     userType: str = Field(..., example="student")
-    
+
+@app.get("/")
+def welcome():
+    return "Welcome to Ajee's Api"
 @app.post("/signup")
 def signUp(input: Simple):
     try:
@@ -74,8 +80,45 @@ def login(input: LoginRequest):
         if not verified_password:
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
+        encoded_token = create_token(details= {
+            "email": result.email,
+            "userType": result.userType
+        }, expiry=token_time)
+        
         print("User login successful")
-        return {"message": "Login successful"}
+        return {"message": "Login successful",
+                "token": encoded_token}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    
+    
+# Write a migration file to add gender gender column to the users table
+
+
+class add_course(BaseModel):
+    title: str = Field(..., example = "AI development")
+    level: str = Field(..., example = "Beginner")
+    
+@app.post("/add_courses")
+def add_courses(input: add_course, userData = Depends(verify_token)):
+    try:
+        print(userData)
+        if userData["userType"] != 'admin':
+            raise HTTPException(status_code=401, detail="You are not authorized to add a course")
+        
+        query = text("""
+            INSERT INTO courses(title, level)
+            VALUES (:title, :level)
+        """)
+        db.execute(query, {"title": input.title, "level": input.level})
+        db.commit()
+        
+        return {
+            "message": "Course added successfully",
+            "data": {"title": input.title, "level": input.level}
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
