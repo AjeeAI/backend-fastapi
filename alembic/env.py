@@ -19,7 +19,7 @@ config = context.config
 dburl = os.getenv("dburl")
 
 if not dburl:
-    raise ValueError("❌ Environment variable 'dburl' not found. Make sure .env is in the project root and contains it.")
+    raise ValueError("Environment variable 'dburl' not found. Make sure .env is in the project root and contains it.")
 
 config.set_main_option("sqlalchemy.url", str(dburl))
 

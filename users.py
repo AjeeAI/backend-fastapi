@@ -53,6 +53,7 @@ def signUp(input: Simple):
         
         
 class LoginRequest(BaseModel):
+    
     email: str = Field(..., example="sam@email.com")
     password: str = Field(..., example="sam123")
 
@@ -81,12 +82,15 @@ def login(input: LoginRequest):
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
         encoded_token = create_token(details= {
+            "id": result.id,
             "email": result.email,
-            "userType": result.userType
+            "userType": result.userType,
+            "name": result.name
         }, expiry=token_time)
         
         print("User login successful")
-        return {"message": "Login successful",
+        
+        return {"message": f"Login successful",
                 "token": encoded_token}
 
     except Exception as e:
@@ -122,3 +126,28 @@ def add_courses(input: add_course, userData = Depends(verify_token)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+class enroll(BaseModel):
+    
+    courseId: int = Field(..., example=1)
+@app.post("/enroll")
+
+def enroll(input: enroll, userData = Depends(verify_token)):
+    if userData["userType"] != "student":
+        raise HTTPException(status_code=401, detail="You have to be a student to enroll in a course")
+    
+    query = text("""
+                 
+                 INSERT INTO enrollments(userId, courseId, studentName) 
+                 VALUES (:userId, :courseId, :studentName) 
+                 
+                 """)
+    db.execute(query, {"userId": userData["id"], "courseId": input.courseId, "studentName": userData["name"]})
+    
+    db.commit()
+    
+    return {
+        "message": "Course enrolled successfully",
+        "data": {"userId": userData["id"], "courseId": input.courseId, 
+        "studentName": userData["name"]}
+    }

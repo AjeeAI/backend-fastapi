@@ -32,7 +32,9 @@ def verify_token(request: HTTPAuthorizationCredentials = Security(bearer)):
     
     return {
         "email": verified_token.get("email"),
-        "userType": verified_token["userType"]
+        "userType": verified_token["userType"],
+        "id": verified_token["id"],
+        "name": verified_token["name"]
     }
     
 # def verify_token(request: HTTPAuthorizationCredentials = Security(bearer)):
